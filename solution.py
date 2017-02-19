@@ -24,23 +24,25 @@ def naked_twins(values):
         the values dictionary with the naked twins eliminated from peers.
     """
     # For each unit, propagate the naked-twins constraint.
-    for u in unitlist:
+    for unit in unitlist:
         # 1) Find all instances of naked twins.
         twins_index = defaultdict(list)
-        for box in u:
+        # twins_index is a mapping from pairs of digits to boxes that contain only those pairs of digits.
+        # Example: { '89': ['A1', 'A3'], ... }
+        for box in unit:
             if len(values[box]) == 2:
                 twins_index[values[box]].append(box)
         twins = ((digit_pair, boxes)
                  for digit_pair,boxes in twins_index.items()
-                 if len(boxes) >= 2)
+                 if len(boxes) >= 2)  # Collect all digit pairs that appear more than once in the unit.
 
         # 2) Eliminate the naked twins as possibilities for their peers.
         for (digit1, digit2), boxes in twins:
             box1, box2 = boxes[0], boxes[1]
-            # We take just the first two boxes. If there are more than two boxes,
-            # then the excess boxes will each end up with an emtpy set of values. This
-            # is fine: this invalid state will be caught upstream by reduce_puzzle.
-            for unit_peer in (set(u) - {box1, box2}):
+            # We take just the first two boxes. If there are more than two boxes that contain the
+            # pair of digits, then the excess boxes will each end up with no permissible digits.
+            # This is fine: this invalid state will be caught upstream by reduce_puzzle.
+            for unit_peer in (set(unit) - {box1, box2}):
                 values[unit_peer] = values[unit_peer].replace(digit1, '')
                 values[unit_peer] = values[unit_peer].replace(digit2, '')
 
@@ -120,6 +122,18 @@ def only_choice(values):
 
 
 def sudoku_strategies(values):
+    """Use all Sudoku strategies to eliminate possibilities and assign digits.
+    This is where constraint propagation happens.
+
+    This function simply wraps eliminate, only_choice, naked_twins, and any other
+    Sudoku strategy and calls them all in order on values.
+
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...}
+
+    Returns:
+        the values dictionary.
+    """
     strategies = (eliminate, only_choice, naked_twins)
 
     for strat in strategies:
@@ -133,7 +147,7 @@ def reduce_puzzle(values):
 
     while not stalled:
         solved_values_before = sum(len(vals) == 1 for vals in values.values())
-        vaues = sudoku_strategies(values)  # Use Sudoku strategies to solve boxes.
+        vaues = sudoku_strategies(values)  # Use Sudoku strategies to solve for boxes and propagate constraints.
         solved_values_after = sum(len(vals) == 1 for vals in values.values())
 
         # If no new values were added, stop the loop.
