@@ -69,6 +69,65 @@ units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
 
+### Personalization
+
+def hidden_twins(values):
+    """Eliminate values using the hidden twins strategy.
+
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...}
+    Returns:
+        the values dictionary with the hidden twins eliminated from peers.
+    """
+    # For each unit, propagate the hidden-twins constraint.
+    for unit in unitlist:
+        # 1) Find all instances of hidden twins.
+        digits_index = defaultdict(list)
+        for box in unit:
+            for d in digits:
+                if d in values[box]:
+                    digits_index[d].append(box)
+        twins_index = defaultdict(list)
+        for digit,boxes in digits_index.items():
+            if len(boxes) == 2:
+                twins_index[tuple(boxes)].append(digit)
+        twins = ((''.join(digit_list), boxes)
+                 for boxes,digit_list in twins_index.items()
+                 if len(digit_list) == 2)
+
+        # 2) Assign the hidden twins to their boxes.
+        for digit_pair, boxes in twins:
+            for box in boxes:
+                values[box] = digit_pair
+
+    return values
+
+
+def sudoku_strategies(values):
+    """Use all Sudoku strategies to eliminate possibilities and assign digits.
+    This is where constraint propagation happens.
+
+    This function simply wraps eliminate, only_choice, naked_twins, and any other
+    Sudoku strategy and calls them all in order on values.
+
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...}
+
+    Returns:
+        the values dictionary.
+    """
+    # strategies = (eliminate, only_choice)
+    # strategies = (eliminate, only_choice, naked_twins)
+    strategies = (eliminate, only_choice, naked_twins, hidden_twins)
+
+    for strat in strategies:
+        values = strat(values)
+
+    return values
+
+###
+
+
 def grid_values(grid):
     """
     Convert grid into a dict of {square: char} with '123456789' for empties.
@@ -117,27 +176,6 @@ def only_choice(values):
             if len(d_places) == 1:
                 box = d_places[0]
                 assign_value(values, box, d)
-
-    return values
-
-
-def sudoku_strategies(values):
-    """Use all Sudoku strategies to eliminate possibilities and assign digits.
-    This is where constraint propagation happens.
-
-    This function simply wraps eliminate, only_choice, naked_twins, and any other
-    Sudoku strategy and calls them all in order on values.
-
-    Args:
-        values(dict): a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns:
-        the values dictionary.
-    """
-    strategies = (eliminate, only_choice, naked_twins)
-
-    for strat in strategies:
-        values = strat(values)
 
     return values
 
