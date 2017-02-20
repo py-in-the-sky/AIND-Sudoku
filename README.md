@@ -13,15 +13,17 @@ A: This is easy. We simply need to include in `unitlist` the two main diagonals 
 
 I chose to implement the Hidden Twins strategy (see line 74 in `solution.py`).
 
-I wanted to test how additional Sudoku strategies affected the runtime, so I added a `benchmark` function at line 245 and used the global variables only_choice_uses, naked_twins_uses, and hidden_twins_uses to see how many times these strategies were used across all eleven Sudoku grids in the benchmark function.
+I wanted to test how additional Sudoku strategies affected the runtime, so I added a `benchmark` function at line 245 and used the global variables `only_choice_uses`, `naked_twins_uses`, and `hidden_twins_uses` to see how many times these strategies were used across all eleven Sudoku grids in the benchmark function.
 
 I did several runs using just the Eliminate and Only Choice strategies to propagate constraints; the time to solve all 11 Sudoku grids was roughly 0.53 seconds. Then I conducted several more runs after adding in the Naked Twins strategy; the time to solve all grids went up to roughly 0.54 seconds. And finally, I made several more runs after adding in the Hidden Twins strategy; the time went up to roughly 0.65 seconds.
 
-On the final iteration, using all strategies, Only Choice was used 1127 times to reduce the board; Naked Twins was used 184 times to reduce the board; and Hidden Twins was used 289 times to reduce the boards. When eliminate and Only Choice strategies were the only ones used, surprisingly, Only Choice was used to reduce the board only 1115 times -- fewer than when all strategies were employed.
+On the final iteration, using all strategies, Only Choice was used 1127 times to reduce the board; Naked Twins was used 184 times to reduce the board; and Hidden Twins was used 289 times to reduce the boards.
 
-During this runs, I also used the global variable search_invocations to keep track of the total number of calls to the search function. When Eliminate and Only Choice were the only strategies, search_invocations was 110. When Naked Twins was added, search_invocations was 111. When Hidden Twins was added, search_invocations was 113
+On the other hand, when Eliminate and Only Choice were the only strategies used, surprisingly, Only Choice was used to reduce the board only 1115 times -- fewer than when all strategies were employed.
 
-A prelimary look at these results suggests that the addition of Naked Twins and Hidden Twins added more work than it saved for the solver: that is, the additional strategies made the search space slightly larger (as indicated by search_invocations getting larger) and they added more runtime for the work performed in each function call to naked_twins and hidden_twins.
+During the benchmarking runs, I also used the global variable `search_invocations` to keep track of the total number of calls to the `search` function, in order to get a measure of the search space. When Eliminate and Only Choice were the only strategies used, `search_invocations` was 110. When Naked Twins was added, `search_invocations` was 111. When Hidden Twins was added, `search_invocations` was 113.
+
+A prelimary look at these results suggests that the addition of Naked Twins and Hidden Twins added more work than it saved for the solver: that is, the additional strategies made the search space slightly larger (as indicated by `search_invocations` getting larger) and required more overall work to be performed due to two new functions, `naked_twins` and `hidden_twins`, having to be executed for every iteration of the constraint propagation.
 
 
 ### Install
