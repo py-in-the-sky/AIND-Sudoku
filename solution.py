@@ -2,6 +2,10 @@ from collections import defaultdict
 
 
 assignments = []
+only_choice_uses = 0
+naked_twins_uses = 0
+hidden_twins_uses = 0
+search_invocations = 0
 
 
 def assign_value(values, box, value):
@@ -23,6 +27,8 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
+    global naked_twins_uses
+
     # For each unit, propagate the naked-twins constraint.
     for unit in unitlist:
         # 1) Find all instances of naked twins.
@@ -43,6 +49,10 @@ def naked_twins(values):
             # pair of digits, then the excess boxes will each end up with no permissible digits.
             # This is fine: this invalid state will be caught upstream by reduce_puzzle.
             for unit_peer in (set(unit) - {box1, box2}):
+                if digit1 in values[unit_peer] or digit2 in values[unit_peer]:
+                    # Keep track of how many times this strategy makes a change on the board.
+                    naked_twins_uses += 1
+
                 values[unit_peer] = values[unit_peer].replace(digit1, '')
                 values[unit_peer] = values[unit_peer].replace(digit2, '')
 
@@ -79,6 +89,8 @@ def hidden_twins(values):
     Returns:
         the values dictionary with the hidden twins eliminated from peers.
     """
+    global hidden_twins_uses
+
     # For each unit, propagate the hidden-twins constraint.
     for unit in unitlist:
         # 1) Find all instances of hidden twins.
@@ -104,6 +116,10 @@ def hidden_twins(values):
         # 2) Assign the hidden twins to their boxes.
         for digit_pair,boxes in twins:
             for box in boxes:
+                if values[box] != digit_pair:
+                    # Keep track of how many times this strategy makes a change on the board.
+                    hidden_twins_uses += 1
+
                 values[box] = digit_pair
 
     return values
@@ -163,8 +179,9 @@ def display(values):
     return
 
 
-def eliminate(values):
-    filled_in_digits = ((box, vals) for box,vals in values.items() if len(vals) == 1)
+def eliminate(values, *boxes):
+    boxes = boxes or values.keys()
+    filled_in_digits = ((box, values[box]) for box in boxes if len(values[box]) == 1)
 
     for box,digit in filled_in_digits:
         for peer in peers[box]:
@@ -175,12 +192,19 @@ def eliminate(values):
 
 
 def only_choice(values):
+    global only_choice_uses
+
     for u in unitlist:
         for d in digits:
             d_places = [box for box in u if d in values[box]]
 
             if len(d_places) == 1:
                 box = d_places[0]
+
+                if values[box] != d:
+                    # Keep track of how many times this strategy makes a change on the board.
+                    only_choice_uses += 1
+
                 assign_value(values, box, d)
 
     return values
@@ -205,6 +229,9 @@ def reduce_puzzle(values):
 
 
 def search(values):
+    global search_invocations
+    search_invocations += 1
+
     # First, reduce the puzzle using the previous function.
     values = reduce_puzzle(values)
 
@@ -241,15 +268,56 @@ def solve(grid):
     return search(grid_values(grid))
 
 
+def benchmark():
+    from time import time
+
+    hardest = [  # From http://norvig.com/hardest.txt
+        '85...24..72......9..4.........1.7..23.5...9...4...........8..7..17..........36.4.',
+        '..53.....8......2..7..1.5..4....53...1..7...6..32...8..6.5....9..4....3......97..',
+        '12..4......5.69.1...9...5.........7.7...52.9..3......2.9.6...5.4..9..8.1..3...9.4',
+        '...57..3.1......2.7...234......8...4..7..4...49....6.5.42...3.....7..9....18.....',
+        '7..1523........92....3.....1....47.8.......6............9...5.6.4.9.7...8....6.1.',
+        '1....7.9..3..2...8..96..5....53..9...1..8...26....4...3......1..4......7..7...3..',
+        '1...34.8....8..5....4.6..21.18......3..1.2..6......81.52..7.9....6..9....9.64...2',
+        '...92......68.3...19..7...623..4.1....1...7....8.3..297...8..91...5.72......64...',
+        '.6.5.4.3.1...9...8.........9...5...6.4.6.2.7.7...4...5.........4...8...1.5.2.3.4.',
+        '7.....4...2..7..8...3..8.799..5..3...6..2..9...1.97..6...3..9...3..4..6...9..1.35',
+        '....7..2.8.......6.1.2.5...9.54....8.........3....85.1...3.2.8.4.......9.7..6....'
+    ]
+
+    global unitlist, units, peers
+    unitlist = row_units + column_units + square_units
+    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+    peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
+    t0 = time()
+
+    for grid in hardest:
+        solve(grid)
+
+    t1 = time() - t0
+    print()
+    print('Benchmarking: {} seconds'.format(t1))
+
+    unitlist = row_units + column_units + square_units + diagonal_units
+    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+    peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
+
+
 if __name__ == '__main__':
-    diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    display(solve(diag_sudoku_grid))
+    # diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    # display(solve(diag_sudoku_grid))
 
-    try:
-        from visualize import visualize_assignments
-        visualize_assignments(assignments)
+    # try:
+    #     from visualize import visualize_assignments
+    #     visualize_assignments(assignments)
 
-    except SystemExit:
-        pass
-    except:
-        print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
+    # except SystemExit:
+    #     pass
+    # except:
+    #     print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
+
+    benchmark()
+    print('only_choice_uses: {}; naked_twins_uses: {}; hidden_twins_uses: {}'.format(only_choice_uses,
+                                                                                     naked_twins_uses,
+                                                                                     hidden_twins_uses))
+    print('search_invocations: {}'.format(search_invocations))

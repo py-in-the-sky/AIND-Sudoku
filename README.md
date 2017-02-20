@@ -7,7 +7,21 @@ A: We know from "Naked Twins" that when two boxes from the same unit permit only
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?
-A: This is easy. We simply need to include in `unitlist` the two main diagonals of the Sudoku board (i.e., `[r+c for r,c in zip(rows, cols)]` and `[r+c for r,c in zip(reversed(rows), cols)]`). Then for every box on a main diagonal, `peers` will include the other boxes on the diagonal. The functions `only_choice` and `naked_twins` use the `unitlist` data structure to identify boxes to which they propagate constraints, and the function `eliminate` similarly uses the `peers` data structure. So by including the main diagonals in `unitlist`, we ensure they will be used like any other unit when the code propagates constraints. (See lines 64 and 65 from `solution.py`.)
+A: This is easy. We simply need to include in `unitlist` the two main diagonals of the Sudoku board (i.e., `[r+c for r,c in zip(rows, cols)]` and `[r+c for r,c in zip(reversed(rows), cols)]`). Then for every box on a main diagonal, `peers` will include the other boxes on the diagonal. The functions `only_choice` and `naked_twins` use the `unitlist` data structure to identify boxes to which they propagate constraints, and the function `eliminate` similarly uses the `peers` data structure. So by including the main diagonals in `unitlist`, we ensure they will be used like any other unit when the code propagates constraints. (See lines 66 and 67 from `solution.py`.)
+
+# Student Personalization
+
+I chose to implement the Hidden Twins strategy (see line 74 in `solution.py`).
+
+I wanted to test how additional Sudoku strategies affected the runtime, so I added a `benchmark` function at line 245 and used the global variables only_choice_uses, naked_twins_uses, and hidden_twins_uses to see how many times these strategies were used across all eleven Sudoku grids in the benchmark function.
+
+I did several runs using just the Eliminate and Only Choice strategies to propagate constraints; the time to solve all 11 Sudoku grids was roughly 0.53 seconds. Then I conducted several more runs after adding in the Naked Twins strategy; the time to solve all grids went up to roughly 0.54 seconds. And finally, I made several more runs after adding in the Hidden Twins strategy; the time went up to roughly 0.65 seconds.
+
+On the final iteration, using all strategies, Only Choice was used 1127 times to reduce the board; Naked Twins was used 184 times to reduce the board; and Hidden Twins was used 289 times to reduce the boards. When eliminate and Only Choice strategies were the only ones used, surprisingly, Only Choice was used to reduce the board only 1115 times -- fewer than when all strategies were employed.
+
+During this runs, I also used the global variable search_invocations to keep track of the total number of calls to the search function. When Eliminate and Only Choice were the only strategies, search_invocations was 110. When Naked Twins was added, search_invocations was 111. When Hidden Twins was added, search_invocations was 113
+
+A prelimary look at these results suggests that the addition of Naked Twins and Hidden Twins added more work than it saved for the solver: that is, the additional strategies made the search space slightly larger (as indicated by search_invocations getting larger) and they added more runtime for the work performed in each function call to naked_twins and hidden_twins.
 
 
 ### Install
