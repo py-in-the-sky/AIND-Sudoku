@@ -82,21 +82,27 @@ def hidden_twins(values):
     # For each unit, propagate the hidden-twins constraint.
     for unit in unitlist:
         # 1) Find all instances of hidden twins.
-        digits_index = defaultdict(list)
+        #   An instance of Hidden Twins exists in a unit when two digits are
+        #   permissible in exactly the same two boxes, and only in those two
+        #   boxes. Since the two digits can only be assigned to those boxes,
+        #   all other values are removed from those boxes, which we do in step
+        #   2 below.
+        digits_index = defaultdict(list)  # Maps digits to their permissible boxes.
         for box in unit:
-            for d in digits:
-                if d in values[box]:
-                    digits_index[d].append(box)
-        twins_index = defaultdict(list)
+            for digit in values[box]:
+                digits_index[digit].append(box)
+        # Now find where digits occur in exactly two boxes.
+        twins_index = defaultdict(list)  # Maps pairs of boxes to their common permissible digits.
         for digit,boxes in digits_index.items():
             if len(boxes) == 2:
                 twins_index[tuple(boxes)].append(digit)
+        # Filter down to pairs of boxes with exactly two common permissible digits to find hidden twins.
         twins = ((''.join(digit_list), boxes)
                  for boxes,digit_list in twins_index.items()
                  if len(digit_list) == 2)
 
         # 2) Assign the hidden twins to their boxes.
-        for digit_pair, boxes in twins:
+        for digit_pair,boxes in twins:
             for box in boxes:
                 values[box] = digit_pair
 
