@@ -35,7 +35,7 @@ I ran the benchmarking once using just the Eliminate and Only Choice strategies;
   * Hidden Twins updates the board 289 times
   * Number of calls to `search`: 113
 
-A prelimary look at these results suggests that the addition of Hidden Twins added more work than it saved for the solver: that is, the Hidden Twins made the search space slightly larger (as indicated by `search_invocations` getting larger) and required more overall work to be performed due to the new function, `hidden_twins`, having to be executed for every iteration of the constraint propagation.
+A prelimary look at these results suggests that the addition of Hidden Twins added more work than it saved for the solver: that is, the Hidden Twins made the search space slightly larger (as indicated by the number of `search` invocations getting larger) and required more overall work to be performed due to the new function, `hidden_twins`, having to be executed for every iteration of the constraint propagation.
 
 
 ### Install
