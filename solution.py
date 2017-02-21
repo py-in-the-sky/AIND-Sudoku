@@ -117,7 +117,8 @@ def hidden_twins(values):
         for digit_pair,boxes in twins:
             for box in boxes:
                 if values[box] != digit_pair:
-                    assign_value(values, box, digit_pair)
+                    digit_pair_sorted = ''.join(sorted(digit_pair))  # Ensure digits in values remain in sorted order.
+                    assign_value(values, box, digit_pair_sorted)
                     # Keep track of how many times this strategy makes a change on the board.
                     hidden_twins_uses += 1
 
