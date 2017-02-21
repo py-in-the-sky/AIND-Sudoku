@@ -7,6 +7,7 @@ naked_twins_uses = 0
 hidden_twins_uses = 0
 search_invocations = 0
 
+
 def assign_value(values, box, value):
     """
     Please use this function to update your values dictionary!
@@ -268,7 +269,13 @@ def solve(grid):
 
 def benchmark():
     from time import time
+    global unitlist, units, peers
+    unitlist = row_units + column_units + square_units
+    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+    peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
+    overall_time = 0
+    n_iterations = 10
     hardest = [  # From http://norvig.com/hardest.txt
         '85...24..72......9..4.........1.7..23.5...9...4...........8..7..17..........36.4.',
         '..53.....8......2..7..1.5..4....53...1..7...6..32...8..6.5....9..4....3......97..',
@@ -283,18 +290,20 @@ def benchmark():
         '....7..2.8.......6.1.2.5...9.54....8.........3....85.1...3.2.8.4.......9.7..6....'
     ]
 
-    global unitlist, units, peers
-    unitlist = row_units + column_units + square_units
-    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-    peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
-    t0 = time()
+    for _ in range(n_iterations):
+        t0 = time()
+        for grid in hardest:
+            solve(grid)
+        overall_time += (time() - t0)
 
-    for grid in hardest:
-        solve(grid)
-
-    t1 = time() - t0
+    average_time = overall_time / n_iterations
     print()
-    print('Benchmarking: {} seconds'.format(t1))
+    print('Benchmarking: average of {} seconds to solve all 11 Sudoku grids.'.format(average_time))
+
+    print('only_choice_uses: {}; naked_twins_uses: {}; hidden_twins_uses: {}'.format(only_choice_uses // n_iterations,
+                                                                                     naked_twins_uses // n_iterations,
+                                                                                     hidden_twins_uses // n_iterations))
+    print('search_invocations: {}'.format(search_invocations // n_iterations))
 
     unitlist = row_units + column_units + square_units + diagonal_units
     units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
@@ -315,7 +324,3 @@ if __name__ == '__main__':
         print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
 
     # benchmark()
-    print('only_choice_uses: {}; naked_twins_uses: {}; hidden_twins_uses: {}'.format(only_choice_uses,
-                                                                                     naked_twins_uses,
-                                                                                     hidden_twins_uses))
-    print('search_invocations: {}'.format(search_invocations))
