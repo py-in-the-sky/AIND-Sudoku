@@ -7,13 +7,13 @@ A: We know from "Naked Twins" that when two boxes from the same unit permit only
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?
-A: This is easy. We simply need to include in `unitlist` the two main diagonals of the Sudoku board (i.e., `[r+c for r,c in zip(rows, cols)]` and `[r+c for r,c in zip(reversed(rows), cols)]`). Then for every box on a main diagonal, `peers` will include the other boxes on the diagonal. The functions `only_choice` and `naked_twins` use the `unitlist` data structure to identify boxes to which they propagate constraints, and the function `eliminate` similarly uses the `peers` data structure. So by including the main diagonals in `unitlist`, we ensure they will be used like any other unit when the code propagates constraints. (See lines 76 and 77 from `solution.py`.)
+A: This is easy. We simply need to include in `unitlist` the two main diagonals of the Sudoku board (i.e., `[r+c for r,c in zip(rows, cols)]` and `[r+c for r,c in zip(reversed(rows), cols)]`). Then for every box on a main diagonal, `peers` will include the other boxes on the diagonal. The functions `only_choice` and `naked_twins` use the `unitlist` data structure to identify boxes to which they propagate constraints, and the function `eliminate` similarly uses the `peers` data structure. So by including the main diagonals in `unitlist`, we ensure they will be used like any other unit when the code propagates constraints. (See lines 13 and 14 from `solution_utils.py`.)
 
 # Student Personalization
 
-I chose to implement the Hidden Twins strategy. See line 84 in `solution.py` for the implementation, and see line 98 in `solution_test.py` for a unit test of the `hidden_twins` function.
+I chose to implement the Hidden Twins strategy. See line 66 in `solution.py` for the implementation, and see line 98 in `solution_test.py` for a unit test of the `hidden_twins` function.
 
-I also wrote a `benchmark` function (see line 270 of `solution.py`) because I wanted to test how additional Sudoku strategies affected the runtime. The benchmarking uses the 11 [hardest](http://norvig.com/hardest.txt) Sudoku grids from Peter Norvig's blog post about his Sudoku solution. For ten iterations, it calls `solve` on each of the Sudoku grids and the reports the average time it takes to solve all 11 Sudoku grids, the number of times each Sudoku strategy is used, and the number of invocations of the `search` function.
+I also wrote a `benchmark` function (see line 253 of `solution.py`) because I wanted to test how additional Sudoku strategies affected the runtime. The benchmarking uses the 11 [hardest](http://norvig.com/hardest.txt) Sudoku grids from Peter Norvig's blog post about his Sudoku solution. For ten iterations, it calls `solve` on each of the Sudoku grids and the reports the average time it takes to solve all 11 Sudoku grids, the number of times each Sudoku strategy is used, and the number of invocations of the `search` function.
 
 I ran the benchmarking once using just the Eliminate and Only Choice strategies; then again with the addition of the Naked Twins Strategy; then again with the addition of the Hidden Twins strategy. The results are below.
 
