@@ -7,7 +7,6 @@ naked_twins_uses = 0
 hidden_twins_uses = 0
 search_invocations = 0
 
-
 def assign_value(values, box, value):
     """
     Please use this function to update your values dictionary!
@@ -50,11 +49,11 @@ def naked_twins(values):
             # This is fine: this invalid state will be caught upstream by reduce_puzzle.
             for unit_peer in (set(unit) - {box1, box2}):
                 if digit1 in values[unit_peer] or digit2 in values[unit_peer]:
+                    new_vals = values[unit_peer].replace(digit1, '')
+                    new_vals = new_vals.replace(digit2, '')
+                    assign_value(values, unit_peer, new_vals)
                     # Keep track of how many times this strategy makes a change on the board.
                     naked_twins_uses += 1
-
-                values[unit_peer] = values[unit_peer].replace(digit1, '')
-                values[unit_peer] = values[unit_peer].replace(digit2, '')
 
     return values
 
@@ -117,10 +116,9 @@ def hidden_twins(values):
         for digit_pair,boxes in twins:
             for box in boxes:
                 if values[box] != digit_pair:
+                    assign_value(values, box, digit_pair)
                     # Keep track of how many times this strategy makes a change on the board.
                     hidden_twins_uses += 1
-
-                values[box] = digit_pair
 
     return values
 
@@ -185,7 +183,8 @@ def eliminate(values, *boxes):
 
     for box,digit in filled_in_digits:
         for peer in peers[box]:
-            values[peer] = values[peer].replace(digit, '')
+            new_vals = values[peer].replace(digit, '')
+            assign_value(values, peer, new_vals)
             # If values[peer] is empty, then we're in an invalid state.
 
     return values
@@ -202,10 +201,9 @@ def only_choice(values):
                 box = d_places[0]
 
                 if values[box] != d:
+                    assign_value(values, box, d)
                     # Keep track of how many times this strategy makes a change on the board.
                     only_choice_uses += 1
-
-                assign_value(values, box, d)
 
     return values
 
@@ -304,19 +302,19 @@ def benchmark():
 
 
 if __name__ == '__main__':
-    # diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    # display(solve(diag_sudoku_grid))
+    diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    display(solve(diag_sudoku_grid))
 
-    # try:
-    #     from visualize import visualize_assignments
-    #     visualize_assignments(assignments)
+    try:
+        from visualize import visualize_assignments
+        visualize_assignments(assignments)
 
-    # except SystemExit:
-    #     pass
-    # except:
-    #     print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
+    except SystemExit:
+        pass
+    except:
+        print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
 
-    benchmark()
+    # benchmark()
     print('only_choice_uses: {}; naked_twins_uses: {}; hidden_twins_uses: {}'.format(only_choice_uses,
                                                                                      naked_twins_uses,
                                                                                      hidden_twins_uses))
