@@ -91,15 +91,16 @@ def hidden_twins(values):
             if len(boxes) == 2:
                 twins_index[tuple(boxes)].append(digit)
         # Filter down to pairs of boxes with exactly two common permissible digits to find hidden twins.
-        twins = ((''.join(digit_list), boxes)
+        twins = ((digit_list, boxes)
                  for boxes,digit_list in twins_index.items()
                  if len(digit_list) == 2)
 
         # 2) Assign the hidden twins to their boxes.
         for digit_pair,boxes in twins:
+            digit_pair_sorted = ''.join(sorted(digit_pair))  # Invariant: digits in values are in sorted order.
+
             for box in boxes:
-                if values[box] != digit_pair:
-                    digit_pair_sorted = ''.join(sorted(digit_pair))  # Ensure digits in values remain in sorted order.
+                if values[box] != digit_pair_sorted:
                     assign_value(values, box, digit_pair_sorted)
                     # Keep track of how many times this strategy makes a change on the board.
                     hidden_twins_uses += 1
